@@ -9,42 +9,103 @@ To install, run the following command (for React >= 15.5):
 ```
 yarn add enzyme react-test-renderer --dev
 ```
+Optionally you can call sinon as well
+```
+yarn add sinon --dev
+```
 
 # Usage
-
-## Shallow Rendering
 - The *expect* is provide by Jest (no import necessary because it comes by default with create-react-app), see the [docs](https://facebook.github.io/jest/docs/expect.html) for more information.
 - The *shallow* rendering is provide by Enzyme, see the [docs](http://airbnb.io/enzyme/docs/api/shallow.html) for more information.
+- The *mount* rendering is provide by Enzyme, see the [docs](http://airbnb.io/enzyme/docs/api/mount.html) for more information.
+
+## Shallow Rendering
+
 ```js
 import React from 'react';
 import { shallow } from 'enzyme';
 
 // usually you will import this component
-const CoolComponent = props => (
+const ShallowComponent = props => (
   <div>
     <h1>First H1</h1>
     <h1>Second H1</h1>
     <h1>Third H1</h1>
     
     <p>{props.text}</p>
+    <p>{props.textSecondary}</p>
   </div>
 );
 
-describe('<CoolComponent />', () => {
+describe('<ShallowComponent />', () => {
 
   it('should render three h1 elements', () => {
-    const wrapper = shallow(<CoolComponent />);
+    const wrapper = shallow(<ShallowComponent />);
 
     expect(wrapper.find(Foo)).toHaveLength(3); // true
   });
 
 
-  it('should render text with the right text' () => {
-    const wrapper = shallow(<CoolComponent text='lorem ipsum docat gep fit'/>);
-    const actual = wrapper.getNode();
+  it('should render the component exactly as expected', () => {
+    const expected = (
+      <div>
+        <h1>First H1</h1>
+        <h1>Second H1</h1>
+        <h1>Third H1</h1>
+        
+        <p>lorem ipsum docat gep fit</p>
+        <p>secondary</p>
+      </div>
+    );
 
-    expect(actual).toContain('<p>lorem ipsum docat gep fit</p>'); // TODO: test it
+    const wrapper = shallow(<ShallowComponent text='lorem ipsum docat gep fit' textSecondary='secondary'/>);
+    expect(wrapper.getNode()).toEqual(expected);
   });
 
 });
+```
+
+## Full DOM Rendering
+*"Full DOM rendering is ideal for use cases where you have components that may interact with DOM APIs, or may require the full lifecycle in order to fully test the component (i.e., componentDidMount etc.)"*  
+
+If you want to use, enable *jsdom* on the package.json using:
+```json
+"test": "react-scripts test --env=jsdom",
+```
+
+```js
+import React from 'react';
+import { mount } from 'enzyme';
+import sinon from 'sinon';
+
+class MountComponent extends React.Component {
+  componentDidMount() {
+    // do something
+  };
+
+  render() {
+    return <button onClick={this.props.onButtonClick}></button>
+  }
+}
+
+describe('<MountComponent />', () => {
+  
+  it('calls componentDidMount', () => {
+    sinon.spy(MountComponent.prototype, 'componentDidMount');
+    const wrapper = mount(<MountComponent />);
+    expect(MountComponent.prototype.componentDidMount.calledOnce).toEqual(true);    
+  });
+
+
+  it('simulate click events', () => {
+    const onButtonClick = sinon.spy();
+    const wrapper = mount(
+      <MountComponent onButtonClick={onButtonClick} />
+    );
+    wrapper.find('button').simulate('click');
+    expect(onButtonClick.calledOnce).toEqual(true);
+  });
+
+});
+
 ```
