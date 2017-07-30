@@ -109,3 +109,10 @@ describe('<MountComponent />', () => {
 });
 
 ```
+
+# Shallow vs Mount vs Render
+
+- Always begin with shallow
+- If componentDidMount or componentDidUpdate - should be tested, use mount
+- If you want to test component lifecycle and children behavior, use mount
+- If you want to test children rendering with less overhead than mount and you are not interested in lifecycle methods, use render
